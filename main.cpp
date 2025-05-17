@@ -66,7 +66,9 @@ T inject(const ProviderT& provider) {
 
 class MyClass {
 public:
-    DI2(MyClass, x, int, y, float)
+    DI2(MyClass, 
+        x, int,
+        y, float)
 private:
     int x;
     float y;
