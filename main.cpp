@@ -4,27 +4,36 @@
 #include <source_location>
 #include "cppdishka.h"
 
-using namespace cppdishka;
 int c = 0;
 
-class TestProvider : public Provider<int> {
+class TestProvider : public cppdishka::Provider<int> {
 public:
     TestProvider() {
-        provide<int>(create_dishkabox<int>(14, []() -> int { return (c++ % 2 == 0) ? 14 : 42 ;} ,e_scope::scope_request));
+        provide<int>(cppdishka::create_dishkabox<int>(14, []() -> int { return (c++ % 2 == 0) ? 14 : 42 ;} ,cppdishka::e_scope::scope_request));
     }
 };
 
 class Object {
 public:
-    int x;
+    Inject1(Object, TestProvider, 
+        x, int)
 
-    Object(TestProvider& provider) : x(provider.get<int>({})) {
+    std::string test() const { 
+        return std::format("x={}\n", x);
     }
+private:
+    int x;
 };
+
+template<class T, class ProviderT>
+T inject(ProviderT& p) {
+    return T{p};
+}
 
 int main() {
     TestProvider provider;
     for (size_t i = 0; i < 10; i++) {
-        std::cout << Object(provider).x << std::endl;
+        auto obj = inject<Object>(provider);
+        std::cout << obj.test();
     }
 }

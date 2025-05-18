@@ -88,5 +88,9 @@ public:
 };
 
 
+#define inject_impl(var_name, type_name) var_name (p.get< type_name >({}))
+
+#define Inject1(Class, Pr, v1, t1) Class (Pr& p) : inject_impl(v1, t1) {} 
+
 
 }
