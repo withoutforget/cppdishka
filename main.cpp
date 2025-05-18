@@ -3,41 +3,28 @@
 #include <format>
 #include <source_location>
 #include "cppdishka.h"
-template<typename T>
-struct ConsoleClass {
-    const std::string m_output;
-    ConsoleClass(const std::string& output, std::source_location l = std::source_location::current()) : m_output(output) {
-        std::cout << std::format("{} ({})\n\n", m_output, l.function_name());
-    }
-    ConsoleClass(const ConsoleClass& rhs,std::source_location l = std::source_location::current()) : m_output(rhs.m_output) {
-        std::cout << std::format("{} ({})\n\n", m_output, l.function_name());
-    }
-    ~ConsoleClass() {
-        std::cout << std::format("~{}\n", m_output);
-    }
-};
 
-class GProvider : public cppdishka::Provider<ConsoleClass<int>, ConsoleClass<float>> {
+using namespace cppdishka;
+int c = 0;
+
+class TestProvider : public Provider<int> {
 public:
-    request_provide(ConsoleClass<int>, ConsoleClass<int>("Int"))
-    app_provide(ConsoleClass<float>, ConsoleClass<float>("Float"))
+    TestProvider() {
+        provide<int>(create_dishkabox<int>(14, []() -> int { return (c++ % 2 == 0) ? 14 : 42 ;} ,e_scope::scope_request));
+    }
 };
 
-struct A {
-    DI2(A,
-    a, ConsoleClass<int>,
-    b, ConsoleClass<float>
-    )
+class Object {
+public:
+    int x;
 
-
-    ConsoleClass<int>& a;
-    ConsoleClass<float>& b;
+    Object(TestProvider& provider) : x(provider.get<int>({})) {
+    }
 };
 
 int main() {
-    GProvider provider;
-    for (volatile size_t i = 0; i < 10; i++) {
-        volatile auto obj = cppdishka::inject<A>(provider);
-        std::cout << std::format("test ptr = {}\n", const_cast<void *>(reinterpret_cast<volatile void*>(&obj)));
+    TestProvider provider;
+    for (size_t i = 0; i < 10; i++) {
+        std::cout << Object(provider).x << std::endl;
     }
 }
